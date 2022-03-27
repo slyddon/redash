@@ -6,8 +6,12 @@ import { Renderer as VisRenderer, Editor as VisEditor, updateVisualizationsSetti
 import { clientConfig } from "@/services/auth";
 
 import countriesDataUrl from "@redash/viz/lib/visualizations/choropleth/maps/countries.geo.json";
+import germanyStatesDataUrl from "@redash/viz/lib/visualizations/choropleth/maps/germany.states.geo.json";
 import usaDataUrl from "@redash/viz/lib/visualizations/choropleth/maps/usa-albers.geo.json";
 import subdivJapanDataUrl from "@redash/viz/lib/visualizations/choropleth/maps/japan.prefectures.geo.json";
+import usaCountiesDataUrl from "@redash/viz/lib/visualizations/choropleth/maps/usa.counties.geo.json";
+import ukPostcodesDataUrl from "@redash/viz/lib/visualizations/choropleth/maps/uk.postcodes.geo.json";
+
 
 function wrapComponentWithSettings(WrappedComponent) {
   return function VisualizationComponent(props) {
@@ -25,6 +29,34 @@ function wrapComponentWithSettings(WrappedComponent) {
             iso_a2: "ISO code (2 letters)",
             iso_a3: "ISO code (3 letters)",
             iso_n3: "ISO code (3 digits)",
+          },
+        },
+        germany_states: {
+          name: "Germany/States",
+          url: germanyStatesDataUrl,
+          fieldNames: {
+            name: "Short name",
+            name_long: "Full name",
+            abbrev: "Abbreviated name",
+            iso_a2: "ISO code (2 letters)",
+            iso_a3: "ISO code (3 letters)",
+            iso_n3: "ISO code (3 digits)",
+          },
+        },
+        usa_counties: {
+          name: "USA/Counties",
+          url: usaCountiesDataUrl,
+          fieldNames: {
+            name: "name",
+            countyFips: "County Fips (5 digits)",
+            affGeoId: "aff Geo Id"
+          },
+        },
+        uk_postcodes: {
+          name: "UK/Postcodes",
+          url: ukPostcodesDataUrl,
+          fieldNames: {
+            name: "name"
           },
         },
         usa: {
