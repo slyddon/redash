@@ -1,7 +1,7 @@
 import { useDebouncedCallback } from "use-debounce";
 import { isNil, trimStart } from "lodash";
 import React from "react";
-import { Section, CodeEditor, Switch } from "@/components/visualizations/editor";
+import { Section, TextArea, Switch } from "@/components/visualizations/editor";
 import { EditorPropTypes } from "@/visualizations/prop-types";
 
 const defaultCustomCode = trimStart(`
@@ -17,13 +17,12 @@ export default function GeneralSettings({ options, onOptionsChange }: any) {
     <React.Fragment>
       {/* @ts-expect-error ts-migrate(2745) FIXME: This JSX tag's 'children' prop expects type 'never... Remove this comment to see the full error message */}
       <Section>
-        <CodeEditor
+        <TextArea
           label="Custom code"
           data-test="Chart.Custom.Code"
-          height="500px"
-          defaultLanguage="javascript"
+          rows="10"
           defaultValue={isNil(options.customCode) ? defaultCustomCode : options.customCode}
-          onChange={(value: any) => debouncedOnOptionsChange({ customCode: value })}
+          onChange={(event: any) => debouncedOnOptionsChange({ customCode: event.target.value })}
         />
       </Section>
 
