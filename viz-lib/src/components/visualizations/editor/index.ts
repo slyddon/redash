@@ -12,19 +12,8 @@ import Section from "./Section";
 import Switch from "./Switch";
 import TextArea from "./TextArea";
 import ContextHelp from "./ContextHelp";
-import CodeEditor from "./CodeEditor";
 
-export {
-  Section,
-  ControlLabel,
-  Checkbox,
-  Switch,
-  TextArea,
-  ContextHelp,
-  withControlLabel,
-  createTabbedEditor,
-  CodeEditor,
-};
+export { Section, ControlLabel, Checkbox, Switch, TextArea, ContextHelp, withControlLabel, createTabbedEditor };
 export const Select = withControlLabel(AntSelect);
 export const Input = withControlLabel(AntInput);
 export const InputNumber = withControlLabel(AntInputNumber);
