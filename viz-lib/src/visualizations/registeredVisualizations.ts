@@ -4,6 +4,7 @@ import PropTypes from "prop-types";
 import boxPlotVisualization from "./box-plot";
 import chartVisualization from "./chart";
 import choroplethVisualization from "./choropleth";
+import customMapVisualization from "./map-custom";
 import cohortVisualization from "./cohort";
 import counterVisualization from "./counter";
 import detailsVisualization from "./details";
@@ -81,6 +82,7 @@ each(
     boxPlotVisualization,
     chartVisualization,
     choroplethVisualization,
+    customMapVisualization,
     cohortVisualization,
     counterVisualization,
     detailsVisualization,
