@@ -67,3 +67,9 @@ werkzeug==0.16.1
 # ldap3==2.2.4
 Authlib==0.15.5
 advocate==1.0.0
+
+
+# This is pinned here, hopefully temporarily until this issue with boto3 is resolved
+# https://github.com/boto/boto3/issues/3648
+# Without pinned version of boto3, the latest boto3 is being used.
+boto3==1.10.50
