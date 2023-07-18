@@ -1,17 +1,17 @@
-import os
 import importlib
-import ssl
-from funcy import distinct, remove
+import os
+
 from flask_talisman import talisman
+from funcy import distinct, remove
 
 from .helpers import (
-    fix_assets_path,
-    array_from_string,
-    parse_boolean,
-    int_or_none,
-    set_from_string,
     add_decode_responses_to_redis_url,
-    cast_int_or_default
+    array_from_string,
+    cast_int_or_default,
+    fix_assets_path,
+    int_or_none,
+    parse_boolean,
+    set_from_string,
 )
 from .organization import DATE_FORMAT, TIME_FORMAT  # noqa
 
@@ -67,7 +67,9 @@ INVITATION_TOKEN_MAX_AGE = int(
 SECRET_KEY = os.environ.get("REDASH_COOKIE_SECRET")
 
 if SECRET_KEY is None:
-    raise Exception("You must set the REDASH_COOKIE_SECRET environment variable. Visit http://redash.io/help/open-source/admin-guide/secrets for more information.")
+    raise Exception(
+        "You must set the REDASH_COOKIE_SECRET environment variable. Visit http://redash.io/help/open-source/admin-guide/secrets for more information."
+    )
 
 # The secret key to use when encrypting data source options
 DATASOURCE_SECRET_KEY = os.environ.get("REDASH_SECRET_KEY", SECRET_KEY)
@@ -180,7 +182,9 @@ SAML_SCHEME_OVERRIDE = os.environ.get("REDASH_SAML_SCHEME_OVERRIDE", "")
 
 SAML_ENCRYPTION_PEM_PATH = os.environ.get("REDASH_SAML_ENCRYPTION_PEM_PATH", "")
 SAML_ENCRYPTION_CERT_PATH = os.environ.get("REDASH_SAML_ENCRYPTION_CERT_PATH", "")
-SAML_ENCRYPTION_ENABLED = SAML_ENCRYPTION_PEM_PATH != "" and SAML_ENCRYPTION_CERT_PATH != ""
+SAML_ENCRYPTION_ENABLED = (
+    SAML_ENCRYPTION_PEM_PATH != "" and SAML_ENCRYPTION_CERT_PATH != ""
+)
 
 # Enables the use of an externally-provided and trusted remote user via an HTTP
 # header.  The "user" must be an email address.
@@ -314,7 +318,9 @@ ALERTS_DEFAULT_MAIL_SUBJECT_TEMPLATE = os.environ.get(
 RATELIMIT_ENABLED = parse_boolean(os.environ.get("REDASH_RATELIMIT_ENABLED", "true"))
 THROTTLE_LOGIN_PATTERN = os.environ.get("REDASH_THROTTLE_LOGIN_PATTERN", "50/hour")
 LIMITER_STORAGE = os.environ.get("REDASH_LIMITER_STORAGE", REDIS_URL)
-THROTTLE_PASS_RESET_PATTERN = os.environ.get("REDASH_THROTTLE_PASS_RESET_PATTERN", "10/hour")
+THROTTLE_PASS_RESET_PATTERN = os.environ.get(
+    "REDASH_THROTTLE_PASS_RESET_PATTERN", "10/hour"
+)
 
 # CORS settings for the Query Result API (and possibly future external APIs).
 # In most cases all you need to do is set REDASH_CORS_ACCESS_CONTROL_ALLOW_ORIGIN
@@ -387,7 +393,8 @@ default_query_runners = [
     "redash.query_runner.sparql_endpoint",
     "redash.query_runner.excel",
     "redash.query_runner.csv",
-    "redash.query_runner.firebolt"
+    "redash.query_runner.firebolt",
+    "redash.query_runner.neo4j",
 ]
 
 enabled_query_runners = array_from_string(
@@ -525,9 +532,7 @@ REQUESTS_ALLOW_REDIRECTS = parse_boolean(
 
 # Enforces CSRF token validation on API requests.
 # This is turned off by default to avoid breaking any existing deployments but it is highly recommended to turn this toggle on to prevent CSRF attacks.
-ENFORCE_CSRF = parse_boolean(
-    os.environ.get("REDASH_ENFORCE_CSRF", "false")
-)
+ENFORCE_CSRF = parse_boolean(os.environ.get("REDASH_ENFORCE_CSRF", "false"))
 
 # Databricks
 
@@ -535,3 +540,5 @@ CSRF_TIME_LIMIT = int(os.environ.get("REDASH_CSRF_TIME_LIMIT", 3600 * 6))
 
 # Email blocked domains, use delimiter comma to separated multiple domains
 BLOCKED_DOMAINS = set_from_string(os.environ.get("REDASH_BLOCKED_DOMAINS", "qq.com"))
+
+__all__ = ["cast_int_or_default"]
