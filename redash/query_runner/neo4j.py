@@ -1,10 +1,11 @@
 from redash.query_runner import BaseQueryRunner, register
-from redash.utils import json_dumps
+from redash.utils import JSONEncoder, json_dumps
 
 try:
     import neo4j
     import numpy as np
     from neo4j import GraphDatabase
+    from neo4j.time import Date, DateTime
 
     enabled = True
 except ImportError:
@@ -121,6 +122,14 @@ def _parse_query(result):
     return data
 
 
+class Neo4JJSONEncoder(JSONEncoder):
+    def default(self, o):
+        if isinstance(o, (Date, DateTime)):
+            return super(Neo4JJSONEncoder, self).default(o.to_native())
+
+        return super(Neo4JJSONEncoder, self).default(o)
+
+
 class Neo4J(BaseQueryRunner):
     should_annotate_query = False
 
@@ -159,7 +168,7 @@ class Neo4J(BaseQueryRunner):
                     else:
                         out = _parse_query(result)
 
-                json_data = json_dumps(out)
+                json_data = json_dumps(out, cls=Neo4JJSONEncoder)
         except Exception as ex:
             return None, str(ex)
         return json_data, None
