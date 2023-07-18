@@ -11,6 +11,7 @@ import detailsVisualization from "./details";
 import funnelVisualization from "./funnel";
 import mapVisualization from "./map";
 import pivotVisualization from "./pivot";
+import networkVisualization from "./network";
 import sankeyVisualization from "./sankey";
 import sunburstVisualization from "./sunburst";
 import tableVisualization from "./table";
@@ -89,6 +90,7 @@ each(
     funnelVisualization,
     mapVisualization,
     pivotVisualization,
+    networkVisualization,
     sankeyVisualization,
     sunburstVisualization,
     tableVisualization,
@@ -103,9 +105,9 @@ export function getDefaultVisualization() {
   // return any visualization explicitly marked as default, or any non-deprecated otherwise
   return (
     // @ts-expect-error ts-migrate(2339) FIXME: Property 'isDefault' does not exist on type 'never... Remove this comment to see the full error message
-    find(registeredVisualizations, visualization => visualization.isDefault) ||
+    find(registeredVisualizations, (visualization) => visualization.isDefault) ||
     // @ts-expect-error ts-migrate(2339) FIXME: Property 'isDeprecated' does not exist on type 'ne... Remove this comment to see the full error message
-    find(registeredVisualizations, visualization => !visualization.isDeprecated)
+    find(registeredVisualizations, (visualization) => !visualization.isDeprecated)
   );
 }
 
