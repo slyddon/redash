@@ -3,7 +3,8 @@ import Table from "antd/lib/table";
 import ColorPicker from "@/components/ColorPicker";
 import { EditorPropTypes } from "@/visualizations/prop-types";
 import ColorPalette from "@/visualizations/ColorPalette";
-import { InputNumber } from "@/components/visualizations/editor";
+import { InputNumber, Select } from "@/components/visualizations/editor";
+import { NetworkDataType, NetworkOptionsType, Node } from "../types";
 
 export default function NodeSettings({ options, data, onOptionsChange }: any) {
   const colors = useMemo(
@@ -14,23 +15,64 @@ export default function NodeSettings({ options, data, onOptionsChange }: any) {
     []
   );
 
-  const getNodeLabels = (data: any) => {
+  const parseNodes = (data: NetworkDataType) => {
     let blob = data.rows[0] || null;
     let nodes = blob ? JSON.parse(blob.nodes) : [];
-    return [...new Set(nodes.map((x: any) => x.label__))];
+    return nodes;
   };
 
-  const getDefaultOptions = (options: any, data: any) => {
-    return getNodeLabels(data).map((name: any) => {
+  const getNodeLabels = (nodes: Array<Node>) => {
+    return [...new Set(nodes.map((x: Node) => x.label__))];
+  };
+
+  const getNodeProperties = (nodes: any, labels: Array<string>) => {
+    let properties: { [index: string]: Array<string> } = {};
+    labels.forEach((label: string) => (properties[label] = []));
+
+    // unique keys
+    const keysToIgnore = ["fx", "fy", "vx", "vy", "x", "y", "index", "label__"];
+    nodes.forEach((node: any) => {
+      const keys = Object.keys(node).filter((x) => !keysToIgnore.includes(x));
+      properties[node.label__] = [...new Set(properties[node.label__].concat(keys))];
+    });
+
+    // transform for select
+    let out: { [index: string]: Array<{ value: string | null; label: string }> } = {};
+    labels.map((label: string) => {
+      out[label] = properties[label].map((key) => {
+        return {
+          value: key,
+          label: key,
+        };
+      });
+    });
+
+    labels.forEach((label: string) =>
+      out[label].unshift({
+        value: null,
+        label: "(None)",
+      })
+    );
+
+    return out;
+  };
+
+  const getDefaultOptions = (labels: Array<string>, options: NetworkOptionsType) => {
+    return labels.map((name: string) => {
       return {
         key: name,
         radius: (options.objectOptions[name] || {}).radius || 20,
         color: (options.objectOptions[name] || {}).color || null,
+        label: null,
       };
     });
   };
 
-  const series = useMemo(() => getDefaultOptions(options, data), [options, data]);
+  let nodes = parseNodes(data);
+  let labels = getNodeLabels(nodes);
+  let nodeProperties = getNodeProperties(nodes, labels);
+
+  const series = useMemo(() => getDefaultOptions(labels, options), [options, data]);
 
   const updateObjectOption = useCallback(
     (key, prop, value) => {
@@ -49,6 +91,26 @@ export default function NodeSettings({ options, data, onOptionsChange }: any) {
     {
       title: "Series",
       dataIndex: "key",
+    },
+    {
+      title: "Label",
+      dataIndex: "label",
+      width: "20%",
+      render: (unused: any, item: any) => (
+        <Select
+          data-test={`Chart.Series.${item.key}.Label`}
+          defaultValue="(None)"
+          onChange={(value: any) => updateObjectOption(item.key, "label", value)}
+        >
+          {nodeProperties[item.key].map(({ value, label }) => (
+            // @ts-expect-error ts-migrate(2339) FIXME: Property 'Option' does not exist on type '({ class... Remove this comment to see the full error message
+            <Select.Option key={value} data-test={`Chart.Series.${item.key}.${label}`}>
+              {label}
+              {/* @ts-expect-error ts-migrate(2339) FIXME: Property 'Option' does not exist on type '({ class... Remove this comment to see the full error message */}
+            </Select.Option>
+          ))}
+        </Select>
+      ),
     },
     {
       title: "Radius",
@@ -86,7 +148,7 @@ export default function NodeSettings({ options, data, onOptionsChange }: any) {
     },
   ];
 
-  return <Table showHeader={false} dataSource={series} columns={columns} pagination={false} />;
+  return <Table showHeader={true} dataSource={series} columns={columns} pagination={false} />;
 }
 
 NodeSettings.propTypes = EditorPropTypes;

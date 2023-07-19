@@ -96,6 +96,17 @@ export default function initNetwork(data: NetworkDataType, options: NetworkOptio
       .attr("fill", "none")
       .attr("opacity", 0);
 
+    const nodeCaption = nodeContainer
+      .append("text")
+      .attr("class", "node-caption")
+      .attr("text-anchor", "middle")
+      .attr("font-size", "7px")
+      .attr("fill", WHITE)
+      .text((d: any) => {
+        let key = getOptionValue(options, d, "label", null);
+        return key ? d[key] : "";
+      });
+
     node.call(drag(simulation));
 
     ////////////////////////////////////////////////////////////////////////////////////
@@ -157,11 +168,11 @@ export default function initNetwork(data: NetworkDataType, options: NetworkOptio
 
       node.attr("cx", (d: any) => d.x).attr("cy", (d: any) => d.y);
       nodeRing.attr("cx", (d: any) => d.x).attr("cy", (d: any) => d.y);
+      nodeCaption.attr("x", (d: any) => d.x).attr("y", (d: any) => d.y);
     }
 
     function handleZoom(x: any) {
-      node.attr("transform", x.transform);
-      nodeRing.attr("transform", x.transform);
+      nodeContainer.attr("transform", x.transform);
       link.attr("transform", x.transform);
     }
 
