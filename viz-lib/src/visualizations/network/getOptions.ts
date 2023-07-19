@@ -1,12 +1,5 @@
 import { merge } from "lodash";
-
-export interface NetworkOptionsType {
-  centreAttraction: number;
-  chargeStrength: number;
-  linkStrength: number;
-  collisionRadius: number;
-  objectOptions: any;
-}
+import { NetworkOptionsType } from "./types";
 
 const DEFAULT_OPTIONS: NetworkOptionsType = {
   centreAttraction: 0.03,

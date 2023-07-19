@@ -1,4 +1,4 @@
-import { NetworkOptionsType } from "../getOptions";
+import { NetworkOptionsType } from "../types";
 import { getOptionValue, color } from "./utils";
 
 function clearInfo(info: any) {

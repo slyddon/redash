@@ -1,4 +1,4 @@
-import { NetworkOptionsType } from "../getOptions";
+import { NetworkOptionsType } from "../types";
 
 // @ts-expect-error
 import * as d3 from "d3v7";

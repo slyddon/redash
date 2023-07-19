@@ -1,20 +1,9 @@
 // @ts-expect-error
 import * as d3 from "d3v7";
-import { NetworkDataType } from "..";
-import { NetworkOptionsType } from "../getOptions";
+import { NetworkDataType, NetworkOptionsType, Node, Link } from "../types";
 
 import { getOptionValue, color } from "./utils";
 import { showNodeInfo, showOverview } from "./tooltip";
-
-type Node = {
-  id: string;
-  label__: string;
-};
-type Link = {
-  source: string;
-  target: string;
-  label__: string;
-};
 
 const BRIGHT_GREEN = "#52EE94";
 const WHITE = "#FFFFFF";
