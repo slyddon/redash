@@ -2,8 +2,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import resizeObserver from "@/services/resizeObserver";
 import { RendererPropTypes } from "@/visualizations/prop-types";
 
-import { NetworkDataType } from "./index";
-import { NetworkOptionsType } from "./getOptions";
+import { NetworkDataType } from "..";
+import { NetworkOptionsType } from "../getOptions";
 import initNetwork from "./initNetwork";
 import "./renderer.less";
 

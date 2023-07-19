@@ -1,15 +1,24 @@
 // @ts-expect-error
 import * as d3 from "d3v7";
-import { NetworkDataType } from ".";
-import { NetworkOptionsType } from "./getOptions";
+import { NetworkDataType } from "..";
+import { NetworkOptionsType } from "../getOptions";
+
+import { getOptionValue, color } from "./utils";
+import { showNodeInfo, showOverview } from "./tooltip";
 
 export default function initNetwork(data: NetworkDataType, options: NetworkOptionsType) {
+  // TODOs
+  // Directed
+  // Label
+  // Overview
+  // Info logic for hover vs click
+
+  let blob = data.columns[0].name == "blob" ? data.rows[0] : null;
+
+  let nodes = blob ? JSON.parse(blob.nodes) : [];
+  let links = blob ? JSON.parse(blob.links) : [];
+
   return (element: HTMLDivElement) => {
-    let blob = data.rows[0] || null;
-
-    let nodes = blob ? JSON.parse(blob.nodes) : [];
-    let links = blob ? JSON.parse(blob.links) : [];
-
     ////////////////////////////////////////////////////////////////////////////////////
 
     d3.select(element).selectAll("*").remove();
@@ -55,43 +64,44 @@ export default function initNetwork(data: NetworkDataType, options: NetworkOptio
 
     ////////////////////////////////////////////////////////////////////////////////////
 
-    const color = d3.scaleOrdinal(d3.schemeCategory10);
-
-    // TODO: Directed
     const link = svg
       .append("g")
       .selectAll("line")
       .data(links)
       .enter()
       .append("line")
-      .style("stroke", (d: any) => getOptionValue(d, "color", "#000"))
-      .style("stroke-width", (d: any) => getOptionValue(d, "strokeWidth", 2));
+      .style("stroke", (d: any) => getOptionValue(options, d, "color", "#000"))
+      .style("stroke-width", (d: any) => getOptionValue(options, d, "strokeWidth", 2));
 
-    const node = svg
-      .append("g")
-      .selectAll("circle")
-      .data(nodes)
-      .enter()
+    const nodeContainer = svg.append("g").selectAll("circle").data(nodes).enter();
+
+    const node = nodeContainer
       .append("circle")
-      .attr("r", (d: any) => getOptionValue(d, "radius", 2))
+      .attr("r", (d: any) => getOptionValue(options, d, "radius", 2))
       .style("stroke", "#fff")
       .style("stroke-width", 1.5)
-      .attr("fill", (d: any) => getOptionValue(d, "color", color(d.label__)));
+      .attr("fill", (d: any) => getOptionValue(options, d, "color", color(d.label__)));
+
+    const nodeRing = nodeContainer
+      .append("circle")
+      .attr("r", (d: any) => getOptionValue(options, d, "radius", 2))
+      .style("stroke", "red")
+      .style("stroke-width", 2)
+      .attr("fill", "none")
+      .attr("opacity", 0);
 
     node.call(drag(simulation));
-    node.on("mouseover", function (e: any, nodeTarget: any) {
-      showInfo(nodeTarget);
-    });
+    node
+      .on("mouseover", function (e: any, nodeTarget: any) {
+        showNodeInfo(options, info, nodeTarget);
+      })
+      .on("mouseout", function (e: any, nodeTarget: any) {
+        // showOverview(options, info, nodeTarget);
+      });
 
     const info = infoContainer.append("div");
 
     ////////////////////////////////////////////////////////////////////////////////////
-
-    function getOptionValue(entity: any, key: string, defaultValue: any) {
-      return options.objectOptions[entity.label__]
-        ? options.objectOptions[entity.label__][key] || defaultValue
-        : defaultValue;
-    }
 
     function ticked() {
       link
@@ -101,10 +111,12 @@ export default function initNetwork(data: NetworkDataType, options: NetworkOptio
         .attr("y2", (d: any) => d.target.y);
 
       node.attr("cx", (d: any) => d.x).attr("cy", (d: any) => d.y);
+      nodeRing.attr("cx", (d: any) => d.x).attr("cy", (d: any) => d.y);
     }
 
     function handleZoom(x: any) {
       node.attr("transform", x.transform);
+      nodeRing.attr("transform", x.transform);
       link.attr("transform", x.transform);
     }
 
@@ -129,48 +141,6 @@ export default function initNetwork(data: NetworkDataType, options: NetworkOptio
       }
 
       return d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended);
-    }
-
-    function showInfo(nodeTarget: any) {
-      info.transition().duration(50).selectAll("*").remove();
-
-      info
-        .append("div")
-        .attr("class", "info-header-container")
-        .append("span")
-        .attr("class", "info-header")
-        .style("background-color", getOptionValue(nodeTarget, "color", color(nodeTarget.label__)))
-        .text(nodeTarget.label__);
-
-      let body = info
-        .append("div")
-        .attr("class", "info-body")
-        .selectAll("div")
-        .data(() => {
-          let data: any = [];
-          const keysToIgnore = ["fx", "fy", "vx", "vy", "x", "y", "index", "label__"];
-          const keys = Object.keys(nodeTarget).filter((x) => !keysToIgnore.includes(x));
-          keys.forEach((key) => {
-            data.push({ key: key, val: nodeTarget[key] });
-          });
-          return data;
-        })
-        .enter()
-        .append("div")
-        .attr("class", "info-key-container");
-
-      body
-        .append("div")
-        .attr("class", "info-key-header")
-        .text((x: any) => x.key);
-
-      body
-        .append("div")
-        .attr("class", "info-key-body")
-        .text((x: any) => x.val);
-
-      info.style("visibility", "visible");
-      infoContainer.style("visibility", "visible");
     }
   };
 }
