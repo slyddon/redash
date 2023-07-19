@@ -8,10 +8,7 @@ function clearInfo(info: any) {
 function showNodeInfo(options: NetworkOptionsType, info: any, nodeTarget: any) {
   clearInfo(info);
 
-  info
-    .append("div")
-    .attr("class", "info-title-container")
-    .text("Node Properties")
+  info.append("div").attr("class", "info-title-container").text("Node Properties");
 
   info
     .append("div")
@@ -61,11 +58,7 @@ function showOverview(
 ) {
   clearInfo(info);
 
-
-  info
-    .append("div")
-    .attr("class", "info-title-container")
-    .text("Overview")
+  info.append("div").attr("class", "info-title-container").text("Overview");
 
   const body = info.append("div").attr("class", "info-body");
 
