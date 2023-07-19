@@ -33,37 +33,50 @@ g circle {
   overflow-y: scroll;
 }
 
-.info-header-container {
-  padding: 10px 10px 0 10px;
-  text-align: center;
+.info-title-container {
+  padding: 5px 10px 3px 10px;
+  font-size: 16px;
 }
 
 .info-header {
-  color: white;
-  border-radius: 20px;
   font-weight: bold;
   font-size: 12px;
-  padding: 3px 7px;
 }
 
-.info-body {
-  margin-top: 5px;
+.label-pill-container {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   word-break: break-word;
+}
+
+.label-pill {
+  color: white;
+  border-radius: 20px;
+  padding: 3px 7px;
+  margin: 4px;
+  word-break: break-all;
+  display: inline-block;
+}
+
+.info-body-container {
+  padding: 10px;
+}
+.info-body-container:nth-child(odd) {
+  background: #ffffff;
+}
+.info-body-container:nth-child(even) {
+  background: #f3f3f3;
+}
+.info-body-container + .info-key-container {
+  margin-bottom: 2px;
 }
 
 .info-key-container {
   padding: 10px;
+  word-break: break-word;
 }
 
-.info-key-container:nth-child(odd) {
-  background: #e9e9e9;
-}
-.info-key-container:nth-child(even) {
-  background: #ffffff;
-}
-.info-key-container + .info-key-container {
-  margin-bottom: 2px;
-}
 .info-key-header {
   font-weight: bold;
 }

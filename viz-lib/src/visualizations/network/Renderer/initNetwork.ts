@@ -6,6 +6,13 @@ import { NetworkOptionsType } from "../getOptions";
 import { getOptionValue, color } from "./utils";
 import { showNodeInfo, showOverview } from "./tooltip";
 
+type Node = {
+  label__: string
+}
+type Link = {
+  label__: string
+}
+
 export default function initNetwork(data: NetworkDataType, options: NetworkOptionsType) {
   // TODOs
   // Directed
@@ -15,8 +22,11 @@ export default function initNetwork(data: NetworkDataType, options: NetworkOptio
 
   let blob = data.columns[0].name == "blob" ? data.rows[0] : null;
 
-  let nodes = blob ? JSON.parse(blob.nodes) : [];
-  let links = blob ? JSON.parse(blob.links) : [];
+  let nodes: Array<Node> = blob ? JSON.parse(blob.nodes) : [];
+  let links: Array<Link> = blob ? JSON.parse(blob.links) : [];
+
+  const nodeTypes: Array<string> =  [...new Set(nodes.map((x: Node) => x.label__))]
+  const linkTypes: Array<string> =  [...new Set(links.map((x: any) => x.label__))]
 
   return (element: HTMLDivElement) => {
     ////////////////////////////////////////////////////////////////////////////////////
@@ -70,21 +80,21 @@ export default function initNetwork(data: NetworkDataType, options: NetworkOptio
       .data(links)
       .enter()
       .append("line")
-      .style("stroke", (d: any) => getOptionValue(options, d, "color", "#000"))
-      .style("stroke-width", (d: any) => getOptionValue(options, d, "strokeWidth", 2));
+      .style("stroke", (d: Link) => getOptionValue(options, d, "color", "#000"))
+      .style("stroke-width", (d: Link) => getOptionValue(options, d, "strokeWidth", 2));
 
     const nodeContainer = svg.append("g").selectAll("circle").data(nodes).enter();
 
     const node = nodeContainer
       .append("circle")
-      .attr("r", (d: any) => getOptionValue(options, d, "radius", 2))
+      .attr("r", (d: Node) => getOptionValue(options, d, "radius", 2))
       .style("stroke", "#fff")
       .style("stroke-width", 1.5)
-      .attr("fill", (d: any) => getOptionValue(options, d, "color", color(d.label__)));
+      .attr("fill", (d: Node) => getOptionValue(options, d, "color", color(d.label__)));
 
     const nodeRing = nodeContainer
       .append("circle")
-      .attr("r", (d: any) => getOptionValue(options, d, "radius", 2))
+      .attr("r", (d: Node) => getOptionValue(options, d, "radius", 2))
       .style("stroke", "red")
       .style("stroke-width", 2)
       .attr("fill", "none")
@@ -92,14 +102,16 @@ export default function initNetwork(data: NetworkDataType, options: NetworkOptio
 
     node.call(drag(simulation));
     node
-      .on("mouseover", function (e: any, nodeTarget: any) {
+      .on("mouseover", function (e: any, nodeTarget: Node) {
         showNodeInfo(options, info, nodeTarget);
       })
-      .on("mouseout", function (e: any, nodeTarget: any) {
-        // showOverview(options, info, nodeTarget);
+      .on("mouseout", function () {
+        showOverview(options, info, nodeTypes, linkTypes, nodes.length, links.length);
       });
 
     const info = infoContainer.append("div");
+
+    showOverview(options, info, nodeTypes, linkTypes, nodes.length, links.length);
 
     ////////////////////////////////////////////////////////////////////////////////////
 
