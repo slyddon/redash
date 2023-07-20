@@ -39,9 +39,7 @@ def _is_graph(result):
     if out is None:
         raise ValueError("No results")
     return any(
-        isinstance(v, neo4j.graph.Node)
-        or isinstance(v, neo4j.graph.Relationship)
-        or isinstance(v, neo4j.graph.Path)
+        isinstance(v, (neo4j.graph.Node, neo4j.graph.Relationship, neo4j.graph.Path))
         for v in out.values()
     )
 
@@ -51,7 +49,12 @@ def _parse_graph(result):
 
     out = {
         "nodes": [
-            {"id": n.element_id, "label__": _get_node_label(n), **n}
+            {
+                "id": n.element_id,
+                "label__": _get_node_label(n),
+                "labels__": list(n.labels),
+                **n,
+            }
             for n in graph.nodes
         ],
         "links": [

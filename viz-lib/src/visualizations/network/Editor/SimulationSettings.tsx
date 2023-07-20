@@ -11,7 +11,8 @@ export default function SimulationSettings({ options, onOptionsChange }: any) {
     <React.Fragment>
       {/* @ts-expect-error ts-migrate(2745) FIXME: This JSX tag's 'children' prop expects type 'never... Remove this comment to see the full error message */}
       <Section>
-        <Grid.Row gutter={15} type="flex" align="middle">
+      {/* @ts-expect-error */}
+      <Grid.Row gutter={15} type="flex" align="middle">
           <Grid.Col span={12}>
             <InputNumber
               label="Charge Strength"
@@ -30,6 +31,7 @@ export default function SimulationSettings({ options, onOptionsChange }: any) {
           </Grid.Col>
         </Grid.Row>
 
+      {/* @ts-expect-error */}
         <Grid.Row gutter={15} type="flex" align="middle">
           <Grid.Col span={12}>
             <InputNumber

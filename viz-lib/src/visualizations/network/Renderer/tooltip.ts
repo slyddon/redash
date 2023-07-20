@@ -1,5 +1,5 @@
 import { NetworkOptionsType } from "../types";
-import { getOptionValue, getOptionValueByLabel, color } from "./utils";
+import { getOptionValue, color } from "./utils";
 
 function clearInfo(info: any) {
   info.selectAll("*").remove();
@@ -15,10 +15,13 @@ function showNodeInfo(options: NetworkOptionsType, info: any, nodeTarget: any) {
     .style("padding", "2px 5px 5px")
     .append("div")
     .attr("class", "label-pill-container")
+    .selectAll("span")
+    .data(nodeTarget.labels__)
+    .enter()
     .append("span")
     .attr("class", "info-header label-pill")
-    .style("background-color", getOptionValueByLabel(options, nodeTarget, "color", color(nodeTarget.label__)))
-    .text(nodeTarget.label__);
+    .style("background-color", (x: any) => getOptionValue(options, x, "color", color(x)))
+    .text((x: string) => x);
 
   let body = info
     .append("div")
@@ -26,7 +29,7 @@ function showNodeInfo(options: NetworkOptionsType, info: any, nodeTarget: any) {
     .selectAll("div")
     .data(() => {
       let data: any = [];
-      const keysToIgnore = ["fx", "fy", "vx", "vy", "x", "y", "index", "label__"];
+      const keysToIgnore = ["fx", "fy", "vx", "vy", "x", "y", "index", "label__", "labels__"];
       const keys = Object.keys(nodeTarget).filter((x) => !keysToIgnore.includes(x));
       keys.forEach((key) => {
         data.push({ key: key, val: nodeTarget[key] });

@@ -11,9 +11,6 @@ const BLACK = "#000000";
 const DEFAULT_NODE_RADIUS = 8;
 
 export default function initNetwork(data: NetworkDataType, options: NetworkOptionsType) {
-  // TODOs
-  // Label
-
   let blob = data.columns.length > 0 && data.columns[0].name == "blob" ? data.rows[0] : null;
 
   let nodes: Array<Node> = blob ? JSON.parse(blob.nodes) : [];
@@ -60,8 +57,8 @@ export default function initNetwork(data: NetworkDataType, options: NetworkOptio
       .attr("viewBox", "0 -5 10 10")
       .attr("refX", 0)
       .attr("refY", 0)
-      .attr("markerWidth", 6)
-      .attr("markerHeight", 6)
+      .attr("markerWidth", 4)
+      .attr("markerHeight", 4)
       .attr("orient", "auto-start-reverse")
       .append("path")
       .attr("d", "M0,-5L10,0L0,5")
@@ -70,10 +67,32 @@ export default function initNetwork(data: NetworkDataType, options: NetworkOptio
     const linkContainer = svg.append("g").selectAll("path").data(links).enter().append("g");
     const link = linkContainer
       .append("path")
-      .style("fill", "none")
+      .attr("class", "link-path")
       .style("stroke", (d: any) => getOptionValueByLabel(options, d, "color", BLACK))
       .style("stroke-width", (d: any) => getOptionValueByLabel(options, d, "strokeWidth", 2))
       .attr("marker-end", (d: any) => `url(#arrow-${d.label__})`);
+
+    const linkLabelContainer = linkContainer.append("g");
+    linkLabelContainer
+      .append("text")
+      .attr("class", "link-caption")
+      .attr("y", 1)
+      .text((d: any) => d.label__);
+    linkLabelContainer
+      .call(getBB)
+      .insert("rect", "text")
+      .attr("width", (d: any) => d.bbox.width)
+      .attr("height", (d: any) => d.bbox.height)
+      .attr("x", (d: any) => -d.bbox.width / 2)
+      .attr("y", (d: any) => -d.bbox.height / 2)
+      .style("fill", "#FFFFFF");
+
+    function getBB(selection: any) {
+      selection.each(function (d: any) {
+        // @ts-expect-error
+        d.bbox = this.getBBox();
+      });
+    }
 
     const nodeContainer = svg.append("g").selectAll("circle").data(nodes).enter().append("g");
     const node = nodeContainer
@@ -112,6 +131,9 @@ export default function initNetwork(data: NetworkDataType, options: NetworkOptio
 
     simulation.tick(100).restart();
     node.call(drag(simulation));
+
+    linkContainer.exit().remove();
+    nodeContainer.exit().remove();
 
     ////////////////////////////////////////////////////////////////////////////////////
 
@@ -168,10 +190,15 @@ export default function initNetwork(data: NetworkDataType, options: NetworkOptio
       link.attr("d", function (d: any) {
         // @ts-expect-error
         let pl = this.getTotalLength();
-        let r = getOptionValueByLabel(options, d.target, "radius", DEFAULT_NODE_RADIUS) + 12;
+        let r = getOptionValueByLabel(options, d.target, "radius", DEFAULT_NODE_RADIUS) + 8;
         // @ts-expect-error
         let m = this.getPointAtLength(pl - r);
         return `M${d.source.x},${d.source.y},${m.x},${m.y}`;
+      });
+
+      linkLabelContainer.attr("transform", function (d: any) {
+        let angle = (Math.atan((d.source.y - d.target.y) / (d.source.x - d.target.x)) * 180) / Math.PI;
+        return "translate(" + [(d.source.x + d.target.x) / 2, (d.source.y + d.target.y) / 2] + ")rotate(" + angle + ")";
       });
 
       node.attr("cx", (d: any) => d.x).attr("cy", (d: any) => d.y);

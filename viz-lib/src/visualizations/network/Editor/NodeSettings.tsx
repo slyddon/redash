@@ -30,7 +30,7 @@ export default function NodeSettings({ options, data, onOptionsChange }: any) {
     labels.forEach((label: string) => (properties[label] = []));
 
     // unique keys
-    const keysToIgnore = ["fx", "fy", "vx", "vy", "x", "y", "index", "label__"];
+    const keysToIgnore = ["fx", "fy", "vx", "vy", "x", "y", "index", "label__", "labels__"];
     nodes.forEach((node: any) => {
       const keys = Object.keys(node).filter((x) => !keysToIgnore.includes(x));
       properties[node.label__] = [...new Set(properties[node.label__].concat(keys))];

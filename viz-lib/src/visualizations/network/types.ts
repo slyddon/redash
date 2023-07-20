@@ -26,6 +26,7 @@ export interface NetworkDataType {
 export interface Node {
   id: string;
   label__: string;
+  labels__: Array<string>;
 }
 
 export interface Link {

@@ -47,7 +47,7 @@ export default function EdgeSettings({ options, data, onOptionsChange }: any) {
 
   const columns = [
     {
-      title: "Series",
+      title: "Edge",
       dataIndex: "key",
     },
     {
@@ -68,6 +68,7 @@ export default function EdgeSettings({ options, data, onOptionsChange }: any) {
       width: "1%",
       render: (unused: any, item: any) => (
         <ColorPicker
+          // @ts-expect-error ts-migrate(2322) FIXME: Type 'string' is not assignable to type 'never'.
           data-test={`Chart.Series.${item.key}.Color`}
           // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean' is not assignable to type 'never'.
           interactive
@@ -86,7 +87,7 @@ export default function EdgeSettings({ options, data, onOptionsChange }: any) {
     },
   ];
 
-  return <Table showHeader={false} dataSource={series} columns={columns} pagination={false} />;
+  return <Table showHeader={true} dataSource={series} columns={columns} pagination={false} />;
 }
 
 EdgeSettings.propTypes = EditorPropTypes;
