@@ -1,5 +1,6 @@
 import { NetworkOptionsType } from "../types";
 import { getOptionValue, color } from "./utils";
+import { BLACK } from "./constants";
 
 function clearInfo(info: any) {
   info.selectAll("*").remove();
@@ -90,7 +91,7 @@ function showOverview(
     .enter()
     .append("span")
     .attr("class", "info-header label-pill")
-    .style("background-color", (x: any) => getOptionValue(options, x, "color", color(x)))
+    .style("background-color", (x: any) => getOptionValue(options, x, "color", BLACK))
     .text((x: string) => x);
 
   // show count

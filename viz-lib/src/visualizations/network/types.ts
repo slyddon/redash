@@ -7,10 +7,6 @@ interface ObjectOptions {
 }
 
 export interface NetworkOptionsType {
-  centreAttraction: number;
-  chargeStrength: number;
-  linkStrength: number;
-  collisionRadius: number;
   objectOptions: { [index: string]: ObjectOptions };
 }
 
@@ -25,6 +21,8 @@ export interface NetworkDataType {
 
 export interface Node {
   id: string;
+  x: number;
+  y: number;
   label__: string;
   labels__: Array<string>;
 }

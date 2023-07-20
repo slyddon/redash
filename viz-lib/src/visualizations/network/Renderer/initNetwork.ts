@@ -4,11 +4,22 @@ import { NetworkDataType, NetworkOptionsType, Node, Link } from "../types";
 
 import { getOptionValueByLabel, getOptionValue, color } from "./utils";
 import { showNodeInfo, showOverview } from "./tooltip";
-
-const WHITE = "#FFFFFF";
-const BLACK = "#000000";
-
-const DEFAULT_NODE_RADIUS = 8;
+import {
+  BLACK,
+  WHITE,
+  LINK_DISTANCE,
+  FORCE_CENTER_X,
+  FORCE_CENTER_Y,
+  FORCE_CHARGE,
+  FORCE_COLLIDE_RADIUS,
+  FORCE_LINK_DISTANCE,
+  DEFAULT_NODE_RADIUS,
+  DEFAULT_ALPHA_MIN,
+  PRECOMPUTED_TICKS,
+  VELOCITY_DECAY,
+  ZOOM_MIN_SCALE,
+  ZOOM_MAX_SCALE,
+} from "./constants";
 
 export default function initNetwork(data: NetworkDataType, options: NetworkOptionsType) {
   let blob = data.columns.length > 0 && data.columns[0].name == "blob" ? data.rows[0] : null;
@@ -18,6 +29,15 @@ export default function initNetwork(data: NetworkDataType, options: NetworkOptio
 
   const nodeTypes: Array<string> = [...new Set(nodes.map((x: Node) => x.label__))];
   const linkTypes: Array<string> = [...new Set(links.map((x: any) => x.label__))];
+
+  // initialise circular layout
+  const radius = (nodes.length * LINK_DISTANCE) / (Math.PI * 2);
+  const center = { x: 0, y: 0 };
+  nodes.forEach((node, i) => {
+    node.x = center.x + radius * Math.sin((2 * Math.PI * i) / nodes.length);
+
+    node.y = center.y + radius * Math.cos((2 * Math.PI * i) / nodes.length);
+  });
 
   return (element: HTMLDivElement) => {
     ////////////////////////////////////////////////////////////////////////////////////
@@ -43,7 +63,7 @@ export default function initNetwork(data: NetworkDataType, options: NetworkOptio
       .attr("class", "network")
       .attr("width", width)
       .attr("height", height)
-      .call(d3.zoom().on("zoom", handleZoom));
+      .call(d3.zoom().scaleExtent([ZOOM_MIN_SCALE, ZOOM_MAX_SCALE]).on("zoom", handleZoom));
 
     svg
       .append("defs")
@@ -115,21 +135,22 @@ export default function initNetwork(data: NetworkDataType, options: NetworkOptio
 
     const simulation = d3
       .forceSimulation(nodes)
-      .force("charge", d3.forceManyBody().strength(options.chargeStrength))
-      .force("centerX", d3.forceX(width / 2).strength(options.centreAttraction))
-      .force("centerY", d3.forceY(height / 2).strength(options.centreAttraction))
+      .velocityDecay(VELOCITY_DECAY)
+      .force("charge", d3.forceManyBody().strength(FORCE_CHARGE))
+      .force("centerX", d3.forceX(0).strength(FORCE_CENTER_X))
+      .force("centerY", d3.forceY(0).strength(FORCE_CENTER_Y))
+      .alphaMin(DEFAULT_ALPHA_MIN)
       .force(
         "link",
         d3
           .forceLink(links)
           .id((d: any) => d.id)
-          .distance(0)
-          .strength(options.linkStrength)
+          .distance(FORCE_LINK_DISTANCE)
       )
-      .force("collision", d3.forceCollide().radius(options.collisionRadius))
+      .force("collision", d3.forceCollide().radius(FORCE_COLLIDE_RADIUS))
       .on("tick", ticked);
 
-    simulation.tick(100).restart();
+    simulation.tick(PRECOMPUTED_TICKS).restart();
     node.call(drag(simulation));
 
     linkContainer.exit().remove();
