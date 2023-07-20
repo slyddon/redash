@@ -63,7 +63,7 @@ export default function NodeSettings({ options, data, onOptionsChange }: any) {
         key: name,
         radius: (options.objectOptions[name] || {}).radius || 20,
         color: (options.objectOptions[name] || {}).color || null,
-        label: null,
+        label: (options.objectOptions[name] || {}).label || null,
       };
     });
   };
@@ -89,7 +89,7 @@ export default function NodeSettings({ options, data, onOptionsChange }: any) {
 
   const columns = [
     {
-      title: "Series",
+      title: "Node",
       dataIndex: "key",
     },
     {
@@ -99,12 +99,12 @@ export default function NodeSettings({ options, data, onOptionsChange }: any) {
       render: (unused: any, item: any) => (
         <Select
           data-test={`Chart.Series.${item.key}.Label`}
-          defaultValue="(None)"
+          defaultValue={item.label}
           onChange={(value: any) => updateObjectOption(item.key, "label", value)}
         >
           {nodeProperties[item.key].map(({ value, label }) => (
             // @ts-expect-error ts-migrate(2339) FIXME: Property 'Option' does not exist on type '({ class... Remove this comment to see the full error message
-            <Select.Option key={value} data-test={`Chart.Series.${item.key}.${label}`}>
+            <Select.Option value={value} key={value} data-test={`Chart.Series.${item.key}.${label}`}>
               {label}
               {/* @ts-expect-error ts-migrate(2339) FIXME: Property 'Option' does not exist on type '({ class... Remove this comment to see the full error message */}
             </Select.Option>
@@ -130,6 +130,7 @@ export default function NodeSettings({ options, data, onOptionsChange }: any) {
       width: "1%",
       render: (unused: any, item: any) => (
         <ColorPicker
+          // @ts-expect-error ts-migrate(2322) FIXME: Type 'string' is not assignable to type 'never'.
           data-test={`Chart.Series.${item.key}.Color`}
           // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean' is not assignable to type 'never'.
           interactive
