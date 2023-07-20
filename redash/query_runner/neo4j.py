@@ -36,8 +36,12 @@ class NeoConnection:
 
 def _is_graph(result):
     out = result.peek()
+    if out is None:
+        raise ValueError("No results")
     return any(
-        isinstance(v, neo4j.graph.Node) or isinstance(v, neo4j.graph.Relationship)
+        isinstance(v, neo4j.graph.Node)
+        or isinstance(v, neo4j.graph.Relationship)
+        or isinstance(v, neo4j.graph.Path)
         for v in out.values()
     )
 

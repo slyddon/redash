@@ -73,3 +73,4 @@ advocate==1.0.0
 # https://github.com/boto/boto3/issues/3648
 # Without pinned version of boto3, the latest boto3 is being used.
 boto3==1.10.50
+neo4j==5.10.0
