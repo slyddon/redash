@@ -2,19 +2,19 @@
 import * as d3 from "d3v7";
 import { NetworkDataType, NetworkOptionsType, Node, Link } from "../types";
 
-import { getOptionValue, color } from "./utils";
+import { getOptionValueByLabel, getOptionValue, color } from "./utils";
 import { showNodeInfo, showOverview } from "./tooltip";
 
-const BRIGHT_GREEN = "#52EE94";
 const WHITE = "#FFFFFF";
 const BLACK = "#000000";
 
+const DEFAULT_NODE_RADIUS = 8;
+
 export default function initNetwork(data: NetworkDataType, options: NetworkOptionsType) {
   // TODOs
-  // Directed
   // Label
 
-  let blob = data.columns[0].name == "blob" ? data.rows[0] : null;
+  let blob = data.columns.length > 0 && data.columns[0].name == "blob" ? data.rows[0] : null;
 
   let nodes: Array<Node> = blob ? JSON.parse(blob.nodes) : [];
   let links: Array<Link> = blob ? JSON.parse(blob.links) : [];
@@ -48,7 +48,53 @@ export default function initNetwork(data: NetworkDataType, options: NetworkOptio
       .attr("height", height)
       .call(d3.zoom().on("zoom", handleZoom));
 
-    var simulation = d3
+    svg
+      .append("defs")
+      .selectAll("marker")
+      .data(linkTypes)
+      .enter()
+      .append("marker")
+      .attr("id", function (d: string) {
+        return `arrow-${d}`;
+      })
+      .attr("viewBox", "0 -5 10 10")
+      .attr("refX", 0)
+      .attr("refY", 0)
+      .attr("markerWidth", 6)
+      .attr("markerHeight", 6)
+      .attr("orient", "auto-start-reverse")
+      .append("path")
+      .attr("d", "M0,-5L10,0L0,5")
+      .style("fill", (d: string) => getOptionValue(options, d, "color", BLACK));
+
+    const linkContainer = svg.append("g").selectAll("path").data(links).enter().append("g");
+    const link = linkContainer
+      .append("path")
+      .style("fill", "none")
+      .style("stroke", (d: any) => getOptionValueByLabel(options, d, "color", BLACK))
+      .style("stroke-width", (d: any) => getOptionValueByLabel(options, d, "strokeWidth", 2))
+      .attr("marker-end", (d: any) => `url(#arrow-${d.label__})`);
+
+    const nodeContainer = svg.append("g").selectAll("circle").data(nodes).enter().append("g");
+    const node = nodeContainer
+      .append("circle")
+      .attr("class", "node-circle")
+      .attr("r", (d: Node) => getOptionValueByLabel(options, d, "radius", DEFAULT_NODE_RADIUS))
+      .attr("fill", (d: Node) => getOptionValueByLabel(options, d, "color", color(d.label__)));
+    const nodeRing = nodeContainer
+      .append("circle")
+      .attr("class", "node-ring")
+      .attr("r", (d: Node) => getOptionValueByLabel(options, d, "radius", DEFAULT_NODE_RADIUS))
+      .attr("opacity", 0);
+    const nodeCaption = nodeContainer
+      .append("text")
+      .attr("class", "node-caption")
+      .text((d: any) => {
+        let key = getOptionValueByLabel(options, d, "label", null);
+        return key ? d[key] : "";
+      });
+
+    const simulation = d3
       .forceSimulation(nodes)
       .force("charge", d3.forceManyBody().strength(options.chargeStrength))
       .force("centerX", d3.forceX(width / 2).strength(options.centreAttraction))
@@ -65,48 +111,6 @@ export default function initNetwork(data: NetworkDataType, options: NetworkOptio
       .on("tick", ticked);
 
     simulation.tick(100).restart();
-
-    ////////////////////////////////////////////////////////////////////////////////////
-
-    const link = svg
-      .append("g")
-      .selectAll("line")
-      .data(links)
-      .enter()
-      .append("line")
-      .style("stroke", (d: Link) => getOptionValue(options, d, "color", BLACK))
-      .style("stroke-width", (d: Link) => getOptionValue(options, d, "strokeWidth", 2));
-
-    const nodeContainer = svg.append("g").selectAll("circle").data(nodes).enter().append("g");
-
-    const node = nodeContainer
-      .append("circle")
-      .attr("class", "node-circle")
-      .attr("r", (d: Node) => getOptionValue(options, d, "radius", 2))
-      .style("stroke", WHITE)
-      .style("stroke-width", 1.5)
-      .attr("fill", (d: Node) => getOptionValue(options, d, "color", color(d.label__)));
-
-    const nodeRing = nodeContainer
-      .append("circle")
-      .attr("class", "node-ring")
-      .attr("r", (d: Node) => getOptionValue(options, d, "radius", 2))
-      .style("stroke", BRIGHT_GREEN)
-      .style("stroke-width", 8)
-      .attr("fill", "none")
-      .attr("opacity", 0);
-
-    const nodeCaption = nodeContainer
-      .append("text")
-      .attr("class", "node-caption")
-      .attr("text-anchor", "middle")
-      .attr("font-size", "7px")
-      .attr("fill", WHITE)
-      .text((d: any) => {
-        let key = getOptionValue(options, d, "label", null);
-        return key ? d[key] : "";
-      });
-
     node.call(drag(simulation));
 
     ////////////////////////////////////////////////////////////////////////////////////
@@ -160,11 +164,15 @@ export default function initNetwork(data: NetworkDataType, options: NetworkOptio
     ////////////////////////////////////////////////////////////////////////////////////
 
     function ticked() {
-      link
-        .attr("x1", (d: any) => d.source.x)
-        .attr("y1", (d: any) => d.source.y)
-        .attr("x2", (d: any) => d.target.x)
-        .attr("y2", (d: any) => d.target.y);
+      link.attr("d", (d: any) => `M${d.source.x},${d.source.y},${d.target.x},${d.target.y}`);
+      link.attr("d", function (d: any) {
+        // @ts-expect-error
+        let pl = this.getTotalLength();
+        let r = getOptionValueByLabel(options, d.target, "radius", DEFAULT_NODE_RADIUS) + 12;
+        // @ts-expect-error
+        let m = this.getPointAtLength(pl - r);
+        return `M${d.source.x},${d.source.y},${m.x},${m.y}`;
+      });
 
       node.attr("cx", (d: any) => d.x).attr("cy", (d: any) => d.y);
       nodeRing.attr("cx", (d: any) => d.x).attr("cy", (d: any) => d.y);
@@ -173,7 +181,7 @@ export default function initNetwork(data: NetworkDataType, options: NetworkOptio
 
     function handleZoom(x: any) {
       nodeContainer.attr("transform", x.transform);
-      link.attr("transform", x.transform);
+      linkContainer.attr("transform", x.transform);
     }
 
     function drag(simulation: any) {

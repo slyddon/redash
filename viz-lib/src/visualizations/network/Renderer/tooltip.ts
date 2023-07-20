@@ -1,5 +1,5 @@
 import { NetworkOptionsType } from "../types";
-import { getOptionValue, color } from "./utils";
+import { getOptionValue, getOptionValueByLabel, color } from "./utils";
 
 function clearInfo(info: any) {
   info.selectAll("*").remove();
@@ -17,7 +17,7 @@ function showNodeInfo(options: NetworkOptionsType, info: any, nodeTarget: any) {
     .attr("class", "label-pill-container")
     .append("span")
     .attr("class", "info-header label-pill")
-    .style("background-color", getOptionValue(options, nodeTarget, "color", color(nodeTarget.label__)))
+    .style("background-color", getOptionValueByLabel(options, nodeTarget, "color", color(nodeTarget.label__)))
     .text(nodeTarget.label__);
 
   let body = info
@@ -73,7 +73,7 @@ function showOverview(
     .enter()
     .append("span")
     .attr("class", "info-header label-pill")
-    .style("background-color", (x: any) => options.objectOptions[x].color || color(x))
+    .style("background-color", (x: any) => getOptionValue(options, x, "color", color(x)))
     .text((x: string) => x);
 
   // show relationship types
@@ -87,7 +87,7 @@ function showOverview(
     .enter()
     .append("span")
     .attr("class", "info-header label-pill")
-    .style("background-color", (x: any) => options.objectOptions[x].color || color(x))
+    .style("background-color", (x: any) => getOptionValue(options, x, "color", color(x)))
     .text((x: string) => x);
 
   // show count
