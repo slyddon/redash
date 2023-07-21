@@ -1,6 +1,6 @@
 import { NetworkOptionsType } from "../types";
-import { getOptionValue, color } from "./utils";
-import { BLACK } from "./constants";
+import { getOptionValue, color, getOptionValueByLabel } from "./utils";
+import { DEFAULT_LINK_COLOUR } from "./constants";
 
 function clearInfo(info: any) {
   info.selectAll("*").remove();
@@ -11,7 +11,7 @@ function showNodeInfo(options: NetworkOptionsType, info: any, nodeTarget: any) {
 }
 
 function showLinkInfo(options: NetworkOptionsType, info: any, linkTarget: any) {
-  showObjectInfo(options, info, linkTarget, "Link Properties", () => BLACK);
+  showObjectInfo(options, info, linkTarget, "Link Properties", () => DEFAULT_LINK_COLOUR);
 }
 
 function showObjectInfo(
@@ -68,8 +68,8 @@ function showObjectInfo(
 function showOverview(
   options: NetworkOptionsType,
   info: any,
-  nodeTypes: Array<string>,
-  linkTypes: Array<string>,
+  nodeTypeCount: { label: string; count: number }[],
+  linkTypeCount: { label: string; count: number }[],
   nodeCount: number,
   linkCount: number
 ) {
@@ -86,12 +86,12 @@ function showOverview(
     .append("div")
     .attr("class", "label-pill-container")
     .selectAll("div")
-    .data(nodeTypes)
+    .data(nodeTypeCount)
     .enter()
     .append("span")
     .attr("class", "info-header label-pill")
-    .style("background-color", (x: any) => getOptionValue(options, x, "color", color(x)))
-    .text((x: string) => x);
+    .style("background-color", (x: any) => getOptionValueByLabel(options, x, "color", color(x)))
+    .text((x: any) => `${x.label} (${x.count})`);
 
   // show relationship types
   const linkLabel = body.append("div").attr("class", "info-body-container");
@@ -100,12 +100,12 @@ function showOverview(
     .append("div")
     .attr("class", "label-pill-container")
     .selectAll("div")
-    .data(linkTypes)
+    .data(linkTypeCount)
     .enter()
     .append("span")
     .attr("class", "info-header label-pill")
-    .style("background-color", (x: any) => getOptionValue(options, x, "color", BLACK))
-    .text((x: string) => x);
+    .style("background-color", (x: any) => getOptionValueByLabel(options, x, "color", DEFAULT_LINK_COLOUR))
+    .text((x: any) => `${x.label} (${x.count})`);
 
   // show count
   const overview = body.append("div").attr("class", "info-body-container");

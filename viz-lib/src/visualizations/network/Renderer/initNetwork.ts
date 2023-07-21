@@ -5,7 +5,7 @@ import { GraphType, NetworkOptionsType, NodeType, LinkType } from "../types";
 import { getOptionValueByLabel, getOptionValue } from "./utils";
 import { showNodeInfo, showLinkInfo, showOverview } from "./tooltip";
 import {
-  BLACK,
+  DEFAULT_LINK_COLOUR,
   FORCE_CENTER_X,
   FORCE_CENTER_Y,
   FORCE_CHARGE,
@@ -27,6 +27,12 @@ import {
 export default function initNetwork({ nodes, links }: GraphType, options: NetworkOptionsType) {
   const nodeTypes: Array<string> = [...new Set(nodes.map((x: NodeType) => x.label))];
   const linkTypes: Array<string> = [...new Set(links.map((x: LinkType) => x.label))];
+  const nodeTypeCount: { label: string; count: number }[] = nodeTypes.map((x) => {
+    return { label: x, count: nodes.filter((n) => n.label == x).length };
+  });
+  const linkTypeCount: { label: string; count: number }[] = linkTypes.map((x) => {
+    return { label: x, count: links.filter((l) => l.label == x).length };
+  });
 
   return (element: HTMLDivElement) => {
     ////////////////////////////////////////////////////////////////////////////////////
@@ -76,7 +82,7 @@ export default function initNetwork({ nodes, links }: GraphType, options: Networ
       .attr("orient", "auto-start-reverse")
       .append("path")
       .attr("d", "M0,-5L10,0L0,5")
-      .style("fill", (d: string) => getOptionValue(options, d, "color", BLACK));
+      .style("fill", (d: string) => getOptionValue(options, d, "color", DEFAULT_LINK_COLOUR));
 
     const linkContainer = baseContainer
       .append("g")
@@ -192,7 +198,8 @@ export default function initNetwork({ nodes, links }: GraphType, options: Networ
 
     const info = infoContainer.append("div");
 
-    const showOverviewPane = () => showOverview(options, info, nodeTypes, linkTypes, nodes.length, links.length);
+    const showOverviewPane = () =>
+      showOverview(options, info, nodeTypeCount, linkTypeCount, nodes.length, links.length);
     showOverviewPane();
 
     // node selection
@@ -293,7 +300,7 @@ export default function initNetwork({ nodes, links }: GraphType, options: Networ
         deselectNodes();
         deselectLinks();
 
-        showOverview(options, info, nodeTypes, linkTypes, nodes.length, links.length);
+        showOverviewPane();
       }
     });
 

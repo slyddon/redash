@@ -1,6 +1,6 @@
 import { NetworkDataType, NetworkOptionsType, NodeType, LinkType, GraphType } from "../types";
 import { fitCaptionIntoCircle } from "./captions";
-import { BLACK, LINK_DISTANCE, DEFAULT_NODE_RADIUS } from "./constants";
+import { DEFAULT_LINK_COLOUR, LINK_DISTANCE, DEFAULT_NODE_RADIUS } from "./constants";
 import { getOptionValueByLabel, color } from "./utils";
 
 export default function prepareData(data: NetworkDataType, options: NetworkOptionsType): GraphType {
@@ -44,7 +44,7 @@ function addNodeAttributes(nodes: Array<NodeType>, options: NetworkOptionsType) 
 
 function addLinkAttributes(links: Array<LinkType>, options: NetworkOptionsType) {
   links.forEach((link) => {
-    link.color = getOptionValueByLabel(options, link, "color", BLACK);
+    link.color = getOptionValueByLabel(options, link, "color", DEFAULT_LINK_COLOUR);
     link.strokeWidth = getOptionValueByLabel(options, link, "strokeWidth", 2);
   });
 }

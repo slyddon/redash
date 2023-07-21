@@ -37,4 +37,4 @@ export const DEFAULT_NODE_RADIUS = 8;
 export const ARROW_SIZE = 4;
 
 export const WHITE = "#FFFFFF";
-export const BLACK = "#000000";
+export const DEFAULT_LINK_COLOUR = "#a5abb6";
