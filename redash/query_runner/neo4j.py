@@ -51,9 +51,9 @@ def _parse_graph(result):
         "nodes": [
             {
                 "id": n.element_id,
-                "label__": _get_node_label(n),
-                "labels__": list(n.labels),
-                **n,
+                "label": _get_node_label(n),
+                "labels": list(n.labels),
+                "properties": dict(n),
             }
             for n in graph.nodes
         ],
@@ -61,8 +61,8 @@ def _parse_graph(result):
             {
                 "source": r.start_node.element_id,
                 "target": r.end_node.element_id,
-                "label__": _get_edge_label(r),
-                **r,
+                "label": _get_edge_label(r),
+                "properties": dict(r),
             }
             for r in graph.relationships
         ],

@@ -17,7 +17,7 @@ export default function EdgeSettings({ options, data, onOptionsChange }: any) {
   const getEdgeLabels = (data: any) => {
     let blob = data.rows[0] || null;
     let nodes = blob ? JSON.parse(blob.links) : [];
-    return [...new Set(nodes.map((x: any) => x.label__))];
+    return [...new Set(nodes.map((x: any) => x.label))];
   };
 
   const getDefaultOptions = (options: any, data: any) => {

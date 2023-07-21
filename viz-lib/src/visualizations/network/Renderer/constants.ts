@@ -1,5 +1,5 @@
 export const PRECOMPUTED_TICKS = 150;
-export const EXTRA_TICKS_PER_RENDER = 10;
+export const EXTRA_TICKS_PER_RENDER = 5;
 
 // Friction.
 export const VELOCITY_DECAY = 0.4;
@@ -26,14 +26,15 @@ export const FORCE_CENTER_X = 0.03;
 export const FORCE_CENTER_Y = 0.03;
 
 export const ZOOM_MIN_SCALE = 0.1;
-export const ZOOM_MAX_SCALE = 2;
+export const ZOOM_MAX_SCALE = 3;
 export const ZOOM_FIT_PADDING_PERCENT = 0.05;
 
 export const FORCE_LINK_DISTANCE = (relationship: any): number =>
-  DEFAULT_NODE_RADIUS + DEFAULT_NODE_RADIUS + LINK_DISTANCE * 2;
-export const FORCE_COLLIDE_RADIUS = (node: any): number => DEFAULT_NODE_RADIUS + 25;
+  relationship.source.radius + relationship.target.radius + LINK_DISTANCE * 2;
+export const FORCE_COLLIDE_RADIUS = (node: any): number => node.radius + 25;
 
 export const WHITE = "#FFFFFF";
 export const BLACK = "#000000";
 
 export const DEFAULT_NODE_RADIUS = 8;
+export const ARROW_SIZE = 4;

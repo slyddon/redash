@@ -4,7 +4,8 @@ import ColorPicker from "@/components/ColorPicker";
 import { EditorPropTypes } from "@/visualizations/prop-types";
 import ColorPalette from "@/visualizations/ColorPalette";
 import { InputNumber, Select } from "@/components/visualizations/editor";
-import { NetworkDataType, NetworkOptionsType, Node } from "../types";
+import { NetworkDataType, NetworkOptionsType, NodeType } from "../types";
+import { DEFAULT_NODE_RADIUS } from "../Renderer/constants";
 
 export default function NodeSettings({ options, data, onOptionsChange }: any) {
   const colors = useMemo(
@@ -21,8 +22,8 @@ export default function NodeSettings({ options, data, onOptionsChange }: any) {
     return nodes;
   };
 
-  const getNodeLabels = (nodes: Array<Node>) => {
-    return [...new Set(nodes.map((x: Node) => x.label__))];
+  const getNodeLabels = (nodes: Array<NodeType>) => {
+    return [...new Set(nodes.map((x: NodeType) => x.label))];
   };
 
   const getNodeProperties = (nodes: any, labels: Array<string>) => {
@@ -30,10 +31,9 @@ export default function NodeSettings({ options, data, onOptionsChange }: any) {
     labels.forEach((label: string) => (properties[label] = []));
 
     // unique keys
-    const keysToIgnore = ["fx", "fy", "vx", "vy", "x", "y", "index", "label__", "labels__"];
     nodes.forEach((node: any) => {
-      const keys = Object.keys(node).filter((x) => !keysToIgnore.includes(x));
-      properties[node.label__] = [...new Set(properties[node.label__].concat(keys))];
+      const keys = Object.keys(node.properties);
+      properties[node.label] = [...new Set(properties[node.label].concat(keys))];
     });
 
     // transform for select
@@ -61,7 +61,7 @@ export default function NodeSettings({ options, data, onOptionsChange }: any) {
     return labels.map((name: string) => {
       return {
         key: name,
-        radius: (options.objectOptions[name] || {}).radius || 20,
+        radius: (options.objectOptions[name] || {}).radius || DEFAULT_NODE_RADIUS,
         color: (options.objectOptions[name] || {}).color || null,
         label: (options.objectOptions[name] || {}).label || null,
       };

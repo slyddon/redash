@@ -1,13 +1,11 @@
 // @ts-expect-error
 import * as d3 from "d3v7";
-import { NetworkDataType, NetworkOptionsType, Node, Link } from "../types";
+import { GraphType, NetworkOptionsType, NodeType, LinkType } from "../types";
 
-import { getOptionValueByLabel, getOptionValue, color } from "./utils";
+import { getOptionValueByLabel, getOptionValue } from "./utils";
 import { showNodeInfo, showOverview } from "./tooltip";
 import {
   BLACK,
-  WHITE,
-  LINK_DISTANCE,
   FORCE_CENTER_X,
   FORCE_CENTER_Y,
   FORCE_CHARGE,
@@ -19,30 +17,22 @@ import {
   VELOCITY_DECAY,
   ZOOM_MIN_SCALE,
   ZOOM_MAX_SCALE,
+  DEFAULT_ALPHA_TARGET,
+  DRAGGING_ALPHA_TARGET,
+  DRAGGING_ALPHA,
+  EXTRA_TICKS_PER_RENDER,
+  ARROW_SIZE,
 } from "./constants";
 
-export default function initNetwork(data: NetworkDataType, options: NetworkOptionsType) {
-  let blob = data.columns.length > 0 && data.columns[0].name == "blob" ? data.rows[0] : null;
-
-  let nodes: Array<Node> = blob ? JSON.parse(blob.nodes) : [];
-  let links: Array<Link> = blob ? JSON.parse(blob.links) : [];
-
-  const nodeTypes: Array<string> = [...new Set(nodes.map((x: Node) => x.label__))];
-  const linkTypes: Array<string> = [...new Set(links.map((x: any) => x.label__))];
-
-  // initialise circular layout
-  const radius = (nodes.length * LINK_DISTANCE) / (Math.PI * 2);
-  const center = { x: 0, y: 0 };
-  nodes.forEach((node, i) => {
-    node.x = center.x + radius * Math.sin((2 * Math.PI * i) / nodes.length);
-
-    node.y = center.y + radius * Math.cos((2 * Math.PI * i) / nodes.length);
-  });
+export default function initNetwork({ nodes, links }: GraphType, options: NetworkOptionsType) {
+  const nodeTypes: Array<string> = [...new Set(nodes.map((x: NodeType) => x.label))];
+  const linkTypes: Array<string> = [...new Set(links.map((x: LinkType) => x.label))];
 
   return (element: HTMLDivElement) => {
     ////////////////////////////////////////////////////////////////////////////////////
 
-    d3.select(element).selectAll("*").remove();
+    const root = d3.select(element);
+    root.selectAll("*").remove();
 
     const containerBounds = d3.select(element).node().getBoundingClientRect();
     const width = Math.floor(containerBounds.width);
@@ -52,9 +42,9 @@ export default function initNetwork(data: NetworkDataType, options: NetworkOptio
       return;
     }
 
-    let container = d3.select(element).append("div").attr("class", "network-split-container");
-    let networkContainer = container.append("div").attr("class", "network-container");
-    let infoContainer = container.append("div").attr("class", "info-container");
+    const container = root.append("div").attr("class", "network-split-container");
+    const networkContainer = container.append("div").attr("class", "network-container");
+    const infoContainer = container.append("div").attr("class", "info-container");
 
     ////////////////////////////////////////////////////////////////////////////////////
 
@@ -77,27 +67,29 @@ export default function initNetwork(data: NetworkDataType, options: NetworkOptio
       .attr("viewBox", "0 -5 10 10")
       .attr("refX", 0)
       .attr("refY", 0)
-      .attr("markerWidth", 4)
-      .attr("markerHeight", 4)
+      .attr("markerWidth", ARROW_SIZE)
+      .attr("markerHeight", ARROW_SIZE)
       .attr("orient", "auto-start-reverse")
       .append("path")
       .attr("d", "M0,-5L10,0L0,5")
       .style("fill", (d: string) => getOptionValue(options, d, "color", BLACK));
 
-    const linkContainer = svg.append("g").selectAll("path").data(links).enter().append("g");
+    const baseContainer = svg.append("g");
+
+    const linkContainer = baseContainer.append("g").selectAll("path").data(links).enter().append("g");
     const link = linkContainer
       .append("path")
       .attr("class", "link-path")
-      .style("stroke", (d: any) => getOptionValueByLabel(options, d, "color", BLACK))
-      .style("stroke-width", (d: any) => getOptionValueByLabel(options, d, "strokeWidth", 2))
-      .attr("marker-end", (d: any) => `url(#arrow-${d.label__})`);
+      .style("stroke", (d: any) => d.color)
+      .style("stroke-width", (d: any) => d.strokeWidth)
+      .attr("marker-end", (d: any) => `url(#arrow-${d.label})`);
 
     const linkLabelContainer = linkContainer.append("g");
     linkLabelContainer
       .append("text")
       .attr("class", "link-caption")
       .attr("y", 1)
-      .text((d: any) => d.label__);
+      .text((d: any) => d.label);
     linkLabelContainer
       .call(getBB)
       .insert("rect", "text")
@@ -114,24 +106,27 @@ export default function initNetwork(data: NetworkDataType, options: NetworkOptio
       });
     }
 
-    const nodeContainer = svg.append("g").selectAll("circle").data(nodes).enter().append("g");
+    const nodeContainer = baseContainer.append("g").selectAll("circle").data(nodes).enter().append("g");
     const node = nodeContainer
       .append("circle")
       .attr("class", "node-circle")
-      .attr("r", (d: Node) => getOptionValueByLabel(options, d, "radius", DEFAULT_NODE_RADIUS))
-      .attr("fill", (d: Node) => getOptionValueByLabel(options, d, "color", color(d.label__)));
-    const nodeRing = nodeContainer
+      .attr("r", (d: NodeType) => d.radius)
+      .attr("fill", (d: NodeType) => d.color);
+    nodeContainer
       .append("circle")
       .attr("class", "node-ring")
-      .attr("r", (d: Node) => getOptionValueByLabel(options, d, "radius", DEFAULT_NODE_RADIUS))
+      .attr("r", (d: NodeType) => d.radius + 1)
       .attr("opacity", 0);
-    const nodeCaption = nodeContainer
-      .append("text")
+    nodeContainer
+      .selectAll("text.caption")
+      .data((node: NodeType) => node.caption)
+      .join("text")
+      // Classed element ensures duplicated data will be removed before adding
+      .classed("caption", true)
       .attr("class", "node-caption")
-      .text((d: any) => {
-        let key = getOptionValueByLabel(options, d, "label", null);
-        return key ? d[key] : "";
-      });
+      .attr("x", 0)
+      .attr("y", (line: any) => line.baseline)
+      .text((line: any) => line.text);
 
     const simulation = d3
       .forceSimulation(nodes)
@@ -148,22 +143,37 @@ export default function initNetwork(data: NetworkDataType, options: NetworkOptio
           .distance(FORCE_LINK_DISTANCE)
       )
       .force("collision", d3.forceCollide().radius(FORCE_COLLIDE_RADIUS))
-      .on("tick", ticked);
-
-    simulation.tick(PRECOMPUTED_TICKS).restart();
-    node.call(drag(simulation));
+      .on("tick", () => {
+        simulation.tick(EXTRA_TICKS_PER_RENDER);
+        ticked();
+      });
 
     linkContainer.exit().remove();
     nodeContainer.exit().remove();
+
+    nodeContainer.call(drag(simulation));
+
+    // start
+    simulation.stop();
+    let precomputeTicks = 0;
+    const start = performance.now();
+    while (performance.now() - start < 250 && precomputeTicks < PRECOMPUTED_TICKS) {
+      simulation.tick(1);
+      precomputeTicks += 1;
+      if (simulation.alpha() <= simulation.alphaMin()) {
+        break;
+      }
+    }
+    simulation.restart();
 
     ////////////////////////////////////////////////////////////////////////////////////
 
     const info = infoContainer.append("div");
     showOverview(options, info, nodeTypes, linkTypes, nodes.length, links.length);
 
-    let selectedNode: Node | undefined;
+    let selectedNode: NodeType | undefined;
     nodeContainer
-      .on("click", function (e: any, nodeTarget: Node) {
+      .on("click", function (e: any, nodeTarget: NodeType) {
         if (selectedNode === undefined || selectedNode.id !== nodeTarget.id) {
           // deselect
           d3.selectAll(".node-ring").attr("opacity", 0);
@@ -171,17 +181,27 @@ export default function initNetwork(data: NetworkDataType, options: NetworkOptio
           // select
           selectedNode = nodeTarget;
           // @ts-expect-error
-          d3.select(this).select(".node-ring").attr("opacity", 1);
+          d3.select(this).select(".node-ring").attr("opacity", 0.75);
         } else {
           // deselect
           selectedNode = undefined;
           d3.selectAll(".node-ring").attr("opacity", 0);
         }
       })
-      .on("mouseover", function (e: any, nodeTarget: Node) {
+      .on("mouseover", function (e: any, nodeTarget: NodeType) {
+        // @ts-expect-error
+        d3.select(this).select(".node-ring").attr("opacity", 0.3);
         showNodeInfo(options, info, nodeTarget);
       })
-      .on("mouseout", function () {
+      .on("mouseout", function (e: any, nodeTarget: NodeType) {
+        if (selectedNode?.id !== nodeTarget.id) {
+          // @ts-expect-error
+          d3.select(this).select(".node-ring").attr("opacity", 0);
+        } else {
+          // @ts-expect-error
+          d3.select(this).select(".node-ring").attr("opacity", 0.75);
+        }
+
         if (selectedNode !== undefined) {
           showNodeInfo(options, info, selectedNode);
         } else {
@@ -211,7 +231,7 @@ export default function initNetwork(data: NetworkDataType, options: NetworkOptio
       link.attr("d", function (d: any) {
         // @ts-expect-error
         let pl = this.getTotalLength();
-        let r = getOptionValueByLabel(options, d.target, "radius", DEFAULT_NODE_RADIUS) + 8;
+        let r = getOptionValueByLabel(options, d.target, "radius", DEFAULT_NODE_RADIUS) + (d.strokeWidth * ARROW_SIZE) + 1;
         // @ts-expect-error
         let m = this.getPointAtLength(pl - r);
         return `M${d.source.x},${d.source.y},${m.x},${m.y}`;
@@ -222,34 +242,45 @@ export default function initNetwork(data: NetworkDataType, options: NetworkOptio
         return "translate(" + [(d.source.x + d.target.x) / 2, (d.source.y + d.target.y) / 2] + ")rotate(" + angle + ")";
       });
 
-      node.attr("cx", (d: any) => d.x).attr("cy", (d: any) => d.y);
-      nodeRing.attr("cx", (d: any) => d.x).attr("cy", (d: any) => d.y);
-      nodeCaption.attr("x", (d: any) => d.x).attr("y", (d: any) => d.y);
+      nodeContainer.attr("transform", function (d: any) {
+        return "translate(" + d.x + "," + d.y + ")";
+      });
     }
 
-    function handleZoom(x: any) {
-      nodeContainer.attr("transform", x.transform);
-      linkContainer.attr("transform", x.transform);
+    function handleZoom(e: any) {
+      baseContainer.transition().duration(50).attr("transform", String(e.transform));
     }
 
     function drag(simulation: any) {
+      let initialDragPosition: [number, number];
+      let restartedSimulation = false;
+      const tolerance = 25;
+
       function dragstarted(event: any) {
-        if (!event.active) simulation.alphaTarget(0.3).restart();
-        // @ts-expect-error
-        d3.select(this).style("stroke", BLACK);
-        event.subject.fx = event.subject.x;
-        event.subject.fy = event.subject.y;
+        initialDragPosition = [event.x, event.y];
+        restartedSimulation = false;
       }
 
       function dragged(event: any) {
+        const dist = Math.pow(initialDragPosition[0] - event.x, 2) + Math.pow(initialDragPosition[1] - event.y, 2);
+
+        // This is to prevent clicks/double clicks from restarting the simulation
+        if (dist > tolerance && !restartedSimulation) {
+          // Set alphaTarget to a value higher than alphaMin so the simulation
+          // isn't stopped while nodes are being dragged.
+          simulation.alphaTarget(DRAGGING_ALPHA_TARGET).alpha(DRAGGING_ALPHA).restart();
+          restartedSimulation = true;
+        }
+
         event.subject.fx = event.x;
         event.subject.fy = event.y;
       }
 
       function dragended(event: any) {
-        if (!event.active) simulation.alphaTarget(0);
-        // @ts-expect-error
-        d3.select(this).style("stroke", WHITE);
+        if (restartedSimulation) {
+          // Reset alphaTarget so the simulation cools down and stops.
+          simulation.alphaTarget(DEFAULT_ALPHA_TARGET);
+        }
       }
 
       return d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended);

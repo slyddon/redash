@@ -19,16 +19,35 @@ export interface NetworkDataType {
   rows: any[];
 }
 
-export interface Node {
+type EntityProperties = {
+  [index: string]: any;
+};
+
+export interface NodeType {
   id: string;
+  label: string;
+  labels: Array<string>;
+  properties: EntityProperties;
+
   x: number;
   y: number;
-  label__: string;
-  labels__: Array<string>;
+  radius: number;
+  color: string;
+  captionKey: string;
+  caption: any;
 }
 
-export interface Link {
+export interface LinkType {
   source: string;
   target: string;
-  label__: string;
+  label: string;
+  properties: EntityProperties;
+
+  color: string;
+  strokeWidth: number;
+}
+
+export interface GraphType {
+  nodes: Array<NodeType>;
+  links: Array<LinkType>;
 }

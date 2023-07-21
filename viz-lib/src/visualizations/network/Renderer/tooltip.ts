@@ -17,7 +17,7 @@ function showNodeInfo(options: NetworkOptionsType, info: any, nodeTarget: any) {
     .append("div")
     .attr("class", "label-pill-container")
     .selectAll("span")
-    .data(nodeTarget.labels__)
+    .data(nodeTarget.labels)
     .enter()
     .append("span")
     .attr("class", "info-header label-pill")
@@ -30,10 +30,9 @@ function showNodeInfo(options: NetworkOptionsType, info: any, nodeTarget: any) {
     .selectAll("div")
     .data(() => {
       let data: any = [];
-      const keysToIgnore = ["fx", "fy", "vx", "vy", "x", "y", "index", "label__", "labels__"];
-      const keys = Object.keys(nodeTarget).filter((x) => !keysToIgnore.includes(x));
+      const keys = Object.keys(nodeTarget.properties);
       keys.forEach((key) => {
-        data.push({ key: key, val: nodeTarget[key] });
+        data.push({ key: key, val: nodeTarget.properties[key] });
       });
       return data;
     })
