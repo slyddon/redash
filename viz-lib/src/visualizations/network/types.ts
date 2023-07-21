@@ -38,6 +38,7 @@ export interface NodeType {
 }
 
 export interface LinkType {
+  id: string;
   source: string;
   target: string;
   label: string;

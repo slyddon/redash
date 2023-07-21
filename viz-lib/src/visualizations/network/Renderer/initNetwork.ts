@@ -3,7 +3,7 @@ import * as d3 from "d3v7";
 import { GraphType, NetworkOptionsType, NodeType, LinkType } from "../types";
 
 import { getOptionValueByLabel, getOptionValue } from "./utils";
-import { showNodeInfo, showOverview } from "./tooltip";
+import { showNodeInfo, showLinkInfo, showOverview } from "./tooltip";
 import {
   BLACK,
   FORCE_CENTER_X,
@@ -55,6 +55,10 @@ export default function initNetwork({ nodes, links }: GraphType, options: Networ
       .attr("height", height)
       .call(d3.zoom().scaleExtent([ZOOM_MIN_SCALE, ZOOM_MAX_SCALE]).on("zoom", handleZoom));
 
+    const baseContainer = svg.append("g");
+
+    ////////////////////////////////////////////////////////////////////////////////////
+
     svg
       .append("defs")
       .selectAll("marker")
@@ -74,9 +78,13 @@ export default function initNetwork({ nodes, links }: GraphType, options: Networ
       .attr("d", "M0,-5L10,0L0,5")
       .style("fill", (d: string) => getOptionValue(options, d, "color", BLACK));
 
-    const baseContainer = svg.append("g");
-
-    const linkContainer = baseContainer.append("g").selectAll("path").data(links).enter().append("g");
+    const linkContainer = baseContainer
+      .append("g")
+      .selectAll("g.link-container")
+      .data(links)
+      .enter()
+      .append("g")
+      .classed("link-container", true);
     const link = linkContainer
       .append("path")
       .attr("class", "link-path")
@@ -106,7 +114,21 @@ export default function initNetwork({ nodes, links }: GraphType, options: Networ
       });
     }
 
-    const nodeContainer = baseContainer.append("g").selectAll("circle").data(nodes).enter().append("g");
+    const linkOverlay = linkContainer
+      .append("path")
+      .attr("class", "link-overlay")
+      .attr("stroke-width", (d: LinkType) => d.strokeWidth + ARROW_SIZE * 2)
+      .attr("opacity", 0);
+
+    ////////////////////////////////////////////////////////////////////////////////////
+
+    const nodeContainer = baseContainer
+      .append("g")
+      .selectAll("g.node-container")
+      .data(nodes)
+      .enter()
+      .append("g")
+      .classed("node-container", true);
     const node = nodeContainer
       .append("circle")
       .attr("class", "node-circle")
@@ -169,56 +191,107 @@ export default function initNetwork({ nodes, links }: GraphType, options: Networ
     ////////////////////////////////////////////////////////////////////////////////////
 
     const info = infoContainer.append("div");
-    showOverview(options, info, nodeTypes, linkTypes, nodes.length, links.length);
 
+    const showOverviewPane = () => showOverview(options, info, nodeTypes, linkTypes, nodes.length, links.length);
+    showOverviewPane();
+
+    // node selection
     let selectedNode: NodeType | undefined;
+    const deselectNodes = () => {
+      selectedNode = undefined;
+      d3.selectAll(".node-ring").attr("opacity", 0);
+    };
+    const selectNode = (currentTarget: any, nodeTarget: NodeType) => {
+      selectedNode = nodeTarget;
+      d3.select(currentTarget).select(".node-ring").attr("opacity", 0.75);
+    };
+    const hoverNode = (currentTarget: any) => {
+      d3.select(currentTarget).select(".node-ring").attr("opacity", 0.3);
+    };
+    const showNodePane = (nodeTarget: NodeType) => showNodeInfo(options, info, nodeTarget);
+
     nodeContainer
       .on("click", function (e: any, nodeTarget: NodeType) {
-        if (selectedNode === undefined || selectedNode.id !== nodeTarget.id) {
-          // deselect
-          d3.selectAll(".node-ring").attr("opacity", 0);
-
-          // select
-          selectedNode = nodeTarget;
-          // @ts-expect-error
-          d3.select(this).select(".node-ring").attr("opacity", 0.75);
+        if (selectedNode?.id !== nodeTarget.id) {
+          deselectNodes();
+          selectNode(e.currentTarget, nodeTarget);
         } else {
-          // deselect
-          selectedNode = undefined;
-          d3.selectAll(".node-ring").attr("opacity", 0);
+          deselectNodes();
         }
       })
       .on("mouseover", function (e: any, nodeTarget: NodeType) {
-        // @ts-expect-error
-        d3.select(this).select(".node-ring").attr("opacity", 0.3);
-        showNodeInfo(options, info, nodeTarget);
+        hoverNode(e.currentTarget);
+        showNodePane(nodeTarget);
       })
       .on("mouseout", function (e: any, nodeTarget: NodeType) {
         if (selectedNode?.id !== nodeTarget.id) {
-          // @ts-expect-error
-          d3.select(this).select(".node-ring").attr("opacity", 0);
+          d3.select(e.currentTarget).select(".node-ring").attr("opacity", 0);
         } else {
-          // @ts-expect-error
-          d3.select(this).select(".node-ring").attr("opacity", 0.75);
+          d3.select(e.currentTarget).select(".node-ring").attr("opacity", 0.75);
         }
 
         if (selectedNode !== undefined) {
-          showNodeInfo(options, info, selectedNode);
+          showNodePane(selectedNode);
+        } else if (selectedLink !== undefined) {
+          showLinkPane(selectedLink);
         } else {
-          showOverview(options, info, nodeTypes, linkTypes, nodes.length, links.length);
+          showOverviewPane();
         }
       });
 
+    // link selection
+    let selectedLink: LinkType | undefined;
+    const deselectLinks = () => {
+      selectedLink = undefined;
+      d3.selectAll(".link-overlay").attr("opacity", 0);
+    };
+    const selectLink = (currentTarget: any, linkTarget: LinkType) => {
+      selectedLink = linkTarget;
+      d3.select(currentTarget).select(".link-overlay").attr("opacity", 0.6);
+    };
+    const hoverLink = (currentTarget: any) => {
+      d3.select(currentTarget).select(".link-overlay").attr("opacity", 0.3);
+    };
+    const showLinkPane = (linkTarget: LinkType) => showLinkInfo(options, info, linkTarget);
+
+    linkContainer
+      .on("click", function (e: any, linkTarget: LinkType) {
+        if (selectedLink?.id !== linkTarget.id) {
+          deselectLinks();
+          selectLink(e.currentTarget, linkTarget);
+        } else {
+          deselectLinks();
+        }
+      })
+      .on("mouseover", function (e: any, linkTarget: LinkType) {
+        hoverLink(e.currentTarget);
+        showLinkPane(linkTarget);
+      })
+      .on("mouseout", function (e: any, linkTarget: LinkType) {
+        if (selectedLink?.id !== linkTarget.id) {
+          d3.select(e.currentTarget).select(".link-overlay").attr("opacity", 0);
+        } else {
+          d3.select(e.currentTarget).select(".link-overlay").attr("opacity", 0.6);
+        }
+
+        if (selectedLink !== undefined) {
+          showLinkPane(selectedLink);
+        } else if (selectedNode !== undefined) {
+          showNodePane(selectedNode);
+        } else {
+          showOverviewPane();
+        }
+      });
     networkContainer.on("click", function (e: any) {
-      function clickedOnNode() {
-        // @ts-expect-error
+      function clickedOnEntity() {
+        //@ts-expect-error
         return this == e.target;
       }
 
-      let notOnNode = node.filter(clickedOnNode).empty();
-      if (notOnNode) {
-        selectedNode = undefined;
-        d3.selectAll(".node-ring").attr("opacity", 0);
+      let notOnEntity = node.filter(clickedOnEntity).empty() && linkOverlay.filter(clickedOnEntity).empty();
+      if (notOnEntity) {
+        deselectNodes();
+        deselectLinks();
 
         showOverview(options, info, nodeTypes, linkTypes, nodes.length, links.length);
       }
@@ -228,10 +301,12 @@ export default function initNetwork({ nodes, links }: GraphType, options: Networ
 
     function ticked() {
       link.attr("d", (d: any) => `M${d.source.x},${d.source.y},${d.target.x},${d.target.y}`);
+      linkOverlay.attr("d", (d: any) => `M${d.source.x},${d.source.y},${d.target.x},${d.target.y}`);
       link.attr("d", function (d: any) {
         // @ts-expect-error
         let pl = this.getTotalLength();
-        let r = getOptionValueByLabel(options, d.target, "radius", DEFAULT_NODE_RADIUS) + (d.strokeWidth * ARROW_SIZE) + 1;
+        let r =
+          getOptionValueByLabel(options, d.target, "radius", DEFAULT_NODE_RADIUS) + d.strokeWidth * ARROW_SIZE + 1;
         // @ts-expect-error
         let m = this.getPointAtLength(pl - r);
         return `M${d.source.x},${d.source.y},${m.x},${m.y}`;

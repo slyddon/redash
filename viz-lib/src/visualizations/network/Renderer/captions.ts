@@ -42,7 +42,7 @@ function measureText(
 
 export const fitCaptionIntoCircle = (node: NodeType, canvas2DContext: CanvasRenderingContext2D) => {
   const fontFamily = "sans-serif";
-  const fontSize = 4;
+  const fontSize = 6;
   // Roughly calculate max text length the circle can fit by radius and font size
   const maxCaptionTextLength = Math.floor((Math.pow(node.radius, 2) * Math.PI) / Math.pow(fontSize, 2));
   let nodeText = node.captionKey ? node.properties[node.captionKey] || "" : "";

@@ -33,8 +33,8 @@ export const FORCE_LINK_DISTANCE = (relationship: any): number =>
   relationship.source.radius + relationship.target.radius + LINK_DISTANCE * 2;
 export const FORCE_COLLIDE_RADIUS = (node: any): number => node.radius + 25;
 
-export const WHITE = "#FFFFFF";
-export const BLACK = "#000000";
-
 export const DEFAULT_NODE_RADIUS = 8;
 export const ARROW_SIZE = 4;
+
+export const WHITE = "#FFFFFF";
+export const BLACK = "#000000";

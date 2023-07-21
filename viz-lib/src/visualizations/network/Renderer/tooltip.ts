@@ -7,9 +7,23 @@ function clearInfo(info: any) {
 }
 
 function showNodeInfo(options: NetworkOptionsType, info: any, nodeTarget: any) {
+  showObjectInfo(options, info, nodeTarget, "Node Properties", (x: any) => color(x));
+}
+
+function showLinkInfo(options: NetworkOptionsType, info: any, linkTarget: any) {
+  showObjectInfo(options, info, linkTarget, "Link Properties", () => BLACK);
+}
+
+function showObjectInfo(
+  options: NetworkOptionsType,
+  info: any,
+  target: any,
+  title: string,
+  defaultColor: CallableFunction
+) {
   clearInfo(info);
 
-  info.append("div").attr("class", "info-title-container").text("Node Properties");
+  info.append("div").attr("class", "info-title-container").text(title);
 
   info
     .append("div")
@@ -17,11 +31,11 @@ function showNodeInfo(options: NetworkOptionsType, info: any, nodeTarget: any) {
     .append("div")
     .attr("class", "label-pill-container")
     .selectAll("span")
-    .data(nodeTarget.labels)
+    .data(target.labels ? target.labels : [target.label])
     .enter()
     .append("span")
     .attr("class", "info-header label-pill")
-    .style("background-color", (x: any) => getOptionValue(options, x, "color", color(x)))
+    .style("background-color", (x: any) => getOptionValue(options, x, "color", defaultColor(x)))
     .text((x: string) => x);
 
   let body = info
@@ -30,9 +44,9 @@ function showNodeInfo(options: NetworkOptionsType, info: any, nodeTarget: any) {
     .selectAll("div")
     .data(() => {
       let data: any = [];
-      const keys = Object.keys(nodeTarget.properties);
+      const keys = Object.keys(target.properties);
       keys.forEach((key) => {
-        data.push({ key: key, val: nodeTarget.properties[key] });
+        data.push({ key: key, val: target.properties[key] });
       });
       return data;
     })
@@ -98,4 +112,4 @@ function showOverview(
   overview.append("span").text(`Displaying ${nodeCount} nodes, ${linkCount} relationships.`);
 }
 
-export { showOverview, showNodeInfo };
+export { showOverview, showNodeInfo, showLinkInfo };

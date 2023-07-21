@@ -59,6 +59,7 @@ def _parse_graph(result):
         ],
         "links": [
             {
+                "id": r.element_id,
                 "source": r.start_node.element_id,
                 "target": r.end_node.element_id,
                 "label": _get_edge_label(r),
