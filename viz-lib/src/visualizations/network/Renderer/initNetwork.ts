@@ -160,8 +160,8 @@ export default function initNetwork({ nodes, links }: GraphType, options: Networ
       .forceSimulation(nodes)
       .velocityDecay(VELOCITY_DECAY)
       .force("charge", d3.forceManyBody().strength(FORCE_CHARGE))
-      .force("centerX", d3.forceX(0).strength(FORCE_CENTER_X))
-      .force("centerY", d3.forceY(0).strength(FORCE_CENTER_Y))
+      .force("centerX", d3.forceX(width / 2).strength(FORCE_CENTER_X))
+      .force("centerY", d3.forceY(height / 2).strength(FORCE_CENTER_Y))
       .alphaMin(DEFAULT_ALPHA_MIN)
       .force(
         "link",

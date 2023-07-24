@@ -7,23 +7,26 @@ function clearInfo(info: any) {
 }
 
 function showNodeInfo(options: NetworkOptionsType, info: any, nodeTarget: any) {
-  showObjectInfo(options, info, nodeTarget, "Node Properties", (x: any) => color(x));
+  showObjectInfo(options, info, nodeTarget, (x: any) => color(x), false);
 }
 
 function showLinkInfo(options: NetworkOptionsType, info: any, linkTarget: any) {
-  showObjectInfo(options, info, linkTarget, "Link Properties", () => DEFAULT_LINK_COLOUR);
+  showObjectInfo(options, info, linkTarget, () => DEFAULT_LINK_COLOUR, true);
 }
 
 function showObjectInfo(
   options: NetworkOptionsType,
   info: any,
   target: any,
-  title: string,
-  defaultColor: CallableFunction
+  defaultColor: CallableFunction,
+  isLink: boolean
 ) {
   clearInfo(info);
 
-  info.append("div").attr("class", "info-title-container").text(title);
+  info
+    .append("div")
+    .attr("class", "info-title-container")
+    .text(isLink ? "Link Properties" : "Node Properties");
 
   info
     .append("div")
@@ -31,10 +34,10 @@ function showObjectInfo(
     .append("div")
     .attr("class", "label-pill-container")
     .selectAll("span")
-    .data(target.labels ? target.labels : [target.label])
+    .data(isLink ? [target.label] : target.labels)
     .enter()
     .append("span")
-    .attr("class", "info-header label-pill")
+    .attr("class", isLink ? "info-header label-pill link-pill" : "info-header label-pill node-pill")
     .style("background-color", (x: any) => getOptionValue(options, x, "color", defaultColor(x)))
     .text((x: string) => x);
 
@@ -44,6 +47,9 @@ function showObjectInfo(
     .selectAll("div")
     .data(() => {
       let data: any = [];
+
+      data.push({ key: "<id>", val: target.id })
+
       const keys = Object.keys(target.properties);
       keys.forEach((key) => {
         data.push({ key: key, val: target.properties[key] });
@@ -89,7 +95,7 @@ function showOverview(
     .data(nodeTypeCount)
     .enter()
     .append("span")
-    .attr("class", "info-header label-pill")
+    .attr("class", "info-header label-pill node-pill")
     .style("background-color", (x: any) => getOptionValueByLabel(options, x, "color", color(x)))
     .text((x: any) => `${x.label} (${x.count})`);
 
@@ -103,7 +109,7 @@ function showOverview(
     .data(linkTypeCount)
     .enter()
     .append("span")
-    .attr("class", "info-header label-pill")
+    .attr("class", "info-header label-pill link-pill")
     .style("background-color", (x: any) => getOptionValueByLabel(options, x, "color", DEFAULT_LINK_COLOUR))
     .text((x: any) => `${x.label} (${x.count})`);
 
